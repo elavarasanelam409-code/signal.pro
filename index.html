@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Signal Pro">
+<meta name="theme-color" content="#070a10">
+<title>Signal Pro</title>
+<style>
+:root{
+  --bg:#070a10;--bg2:#0f1420;--bg3:#161d2e;
+  --border:#1e2840;--text:#eef0f6;--muted:#4a5570;
+  --green:#00e676;--red:#ff3d6e;--blue:#448aff;
+  --orange:#ffab40;--purple:#ce93d8;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden;}
+body{display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.app-name{font-size:15px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px;}
+.live-dot{width:9px;height:9px;border-radius:50%;background:var(--muted);}
+.live-dot.on{background:var(--green);box-shadow:0 0 7px var(--green);}
+.status-pill{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;}
+.sp-on{background:rgba(0,230,118,0.12);color:var(--green);border:1px solid rgba(0,230,118,0.4);}
+.sp-off{background:var(--bg3);color:var(--muted);border:1px solid var(--border);}
+
+/* TABS */
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.tab{flex:1;padding:10px 4px;text-align:center;font-size:12px;font-weight:700;
+  color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;}
+.tab.act{color:var(--blue);border-bottom-color:var(--blue);}
+
+.page{flex:1;overflow-y:auto;padding:10px 12px 88px;display:none;}
+.page.show{display:block;}
+
+/* PAIR + TF SELECTOR */
+.selector-box{background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;padding:12px;margin-bottom:10px;}
+.sel-title{font-size:10px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;}
+.pair-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;}
+.pair-btn{padding:8px 4px;border-radius:10px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;
+  cursor:pointer;text-align:center;transition:all 0.15s;}
+.pair-btn.sel{background:rgba(68,138,255,0.15);border-color:var(--blue);color:var(--blue);}
+.tf-grid{display:flex;gap:6px;}
+.tf-btn{flex:1;padding:8px 4px;border-radius:10px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;
+  cursor:pointer;text-align:center;transition:all 0.15s;}
+.tf-btn.sel{background:rgba(255,171,64,0.15);border-color:var(--orange);color:var(--orange);}
+.active-label{display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.al-pair{font-size:14px;font-weight:800;color:var(--green);}
+.al-sep{color:var(--muted);}
+.al-tf{font-size:14px;font-weight:800;color:var(--orange);}
+
+/* WIN/LOSS */
+.wl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
+.wlb{border-radius:12px;padding:10px 6px;text-align:center;border:1px solid;}
+.wlb-w{background:rgba(0,230,118,0.07);border-color:rgba(0,230,118,0.25);}
+.wlb-l{background:rgba(255,61,110,0.07);border-color:rgba(255,61,110,0.25);}
+.wlb-t{background:rgba(68,138,255,0.07);border-color:rgba(68,138,255,0.25);}
+.wlb-r{background:rgba(255,171,64,0.07);border-color:rgba(255,171,64,0.25);}
+.wl-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+.wlb-w .wl-lbl{color:var(--green);}
+.wlb-l .wl-lbl{color:var(--red);}
+.wlb-t .wl-lbl{color:var(--blue);}
+.wlb-r .wl-lbl{color:var(--orange);}
+.wl-num{font-size:22px;font-weight:900;}
+.wlb-w .wl-num{color:var(--green);}
+.wlb-l .wl-num{color:var(--red);}
+.wlb-t .wl-num{color:var(--blue);}
+.wlb-r .wl-num{color:var(--orange);}
+
+.wr-wrap{margin-bottom:12px;}
+.wr-labels{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;}
+.wr-bar{background:var(--bg3);border-radius:6px;height:7px;overflow:hidden;display:flex;}
+.wr-g{height:7px;background:var(--green);transition:width 0.5s;border-radius:6px 0 0 6px;}
+.wr-r{height:7px;background:var(--red);transition:width 0.5s;border-radius:0 6px 6px 0;}
+
+/* SIGNAL CARD */
+.sig-card{border-radius:16px;padding:16px;margin-bottom:10px;border:2px solid;
+  display:none;animation:pop 0.25s ease;}
+@keyframes pop{from{transform:scale(0.96);opacity:0;}to{transform:scale(1);opacity:1;}}
+.sc-buy{background:rgba(0,230,118,0.07);border-color:var(--green);}
+.sc-sell{background:rgba(255,61,110,0.07);border-color:var(--red);}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.sc-dir{font-size:28px;font-weight:900;}
+.sc-buy .sc-dir{color:var(--green);}
+.sc-sell .sc-dir{color:var(--red);}
+.sc-meta{font-size:12px;color:var(--muted);margin-top:3px;}
+.sc-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+.acc-pill{font-size:12px;padding:4px 10px;border-radius:20px;font-weight:700;}
+.sc-buy .acc-pill{background:rgba(0,230,118,0.15);color:var(--green);}
+.sc-sell .acc-pill{background:rgba(255,61,110,0.15);color:var(--red);}
+.x-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);
+  background:var(--bg3);color:var(--muted);font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;}
+.time-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.tbox{border-radius:12px;padding:11px 12px;border:1px solid;}
+.tb-e{background:rgba(68,138,255,0.08);border-color:rgba(68,138,255,0.4);}
+.tb-x{background:rgba(255,171,64,0.08);border-color:rgba(255,171,64,0.4);}
+.tb-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:5px;}
+.tb-e .tb-lbl{color:var(--blue);}
+.tb-x .tb-lbl{color:var(--orange);}
+.tb-time{font-size:18px;font-weight:800;color:#fff;}
+.tb-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+.cd-wrap{text-align:center;padding:6px 0 10px;}
+.cd-num{font-size:52px;font-weight:900;letter-spacing:4px;line-height:1;}
+.sc-buy .cd-num{color:var(--green);}
+.sc-sell .cd-num{color:var(--red);}
+.cd-lbl{font-size:12px;color:var(--muted);margin-top:5px;}
+.rb-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.rb{padding:13px;border-radius:12px;border:none;font-size:16px;font-weight:800;cursor:pointer;}
+.rb:active{transform:scale(0.96);}
+.rb-w{background:var(--green);color:#000;}
+.rb-l{background:var(--red);color:#fff;}
+.exp-wrap{background:var(--bg3);border-radius:12px;padding:11px 13px;margin-bottom:10px;display:none;}
+.exp-top{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;}
+.exp-rem{font-size:15px;font-weight:800;color:#fff;}
+.exp-bg{background:var(--bg);border-radius:4px;height:5px;overflow:hidden;}
+.exp-fill{height:5px;border-radius:4px;transition:width 1s linear;}
+.sc-buy .exp-fill{background:var(--green);}
+.sc-sell .exp-fill{background:var(--red);}
+
+.cbar-wrap{margin-bottom:10px;}
+.cbar-top{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px;}
+.cbar-bg{background:var(--bg3);border-radius:6px;height:5px;overflow:hidden;}
+.cbar-fill{height:5px;border-radius:6px;transition:width 1s linear;}
+
+.pstats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
+.ps{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:8px 6px;text-align:center;}
+.ps-lbl{font-size:9px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.5px;}
+.ps-val{font-size:12px;font-weight:700;color:#fff;}
+
+.err-box{background:rgba(255,61,110,0.1);border:1px solid var(--red);border-radius:10px;
+  padding:8px 12px;font-size:12px;color:var(--red);margin-bottom:10px;display:none;}
+
+/* CHART PAGE */
+.chart-page-inner{height:calc(100vh - 88px);display:flex;flex-direction:column;padding:10px 12px;}
+.tv-iframe-wrap{flex:1;border-radius:12px;overflow:hidden;border:1px solid var(--border);min-height:260px;}
+.tv-iframe-wrap iframe{width:100%;height:100%;border:none;display:block;}
+.chart-bottom{flex-shrink:0;margin-top:8px;}
+.cb-row{display:flex;gap:6px;margin-bottom:6px;}
+.cb-btn{flex:1;padding:7px 4px;border-radius:10px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--muted);font-size:11px;font-weight:700;
+  cursor:pointer;text-align:center;}
+.cb-btn.sel{background:rgba(68,138,255,0.15);border-color:var(--blue);color:var(--blue);}
+
+/* HISTORY */
+.hs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;}
+.hs{border-radius:12px;padding:12px 8px;text-align:center;border:1px solid;}
+.hs-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;}
+.hs-val{font-size:20px;font-weight:900;}
+.hf-row{display:flex;gap:6px;margin-bottom:10px;}
+.hf-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;}
+.hf-btn.sel{background:rgba(68,138,255,0.15);border-color:var(--blue);color:var(--blue);}
+.hist-list{display:flex;flex-direction:column;gap:6px;}
+.hi{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;border:1px solid;}
+.hi-w{background:rgba(0,230,118,0.05);border-color:rgba(0,230,118,0.2);}
+.hi-l{background:rgba(255,61,110,0.05);border-color:rgba(255,61,110,0.2);}
+.hi-p{background:var(--bg2);border-color:var(--border);}
+.hi-icon{width:36px;height:36px;border-radius:10px;display:flex;
+  align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.hi-w .hi-icon{background:rgba(0,230,118,0.12);}
+.hi-l .hi-icon{background:rgba(255,61,110,0.12);}
+.hi-p .hi-icon{background:var(--bg3);}
+.hi-main{flex:1;}
+.hi-dir{font-size:13px;font-weight:800;}
+.hi-w .hi-dir{color:var(--green);}
+.hi-l .hi-dir{color:var(--red);}
+.hi-p .hi-dir{color:var(--muted);}
+.hi-meta{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.6;}
+.hi-meta b{color:var(--text);}
+.hi-tag{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:700;flex-shrink:0;}
+.hi-w .hi-tag{background:rgba(0,230,118,0.15);color:var(--green);}
+.hi-l .hi-tag{background:rgba(255,61,110,0.15);color:var(--red);}
+.hi-p .hi-tag{background:var(--bg3);color:var(--muted);}
+.empty-msg{text-align:center;padding:30px;color:var(--muted);font-size:13px;line-height:2.2;}
+
+.bottombar{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);
+  border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:8px;z-index:99;}
+.btn-main{flex:3;padding:14px;border-radius:12px;border:none;font-size:15px;font-weight:800;cursor:pointer;}
+.bm-off{background:rgba(68,138,255,0.12);color:var(--blue);border:1px solid rgba(68,138,255,0.4);}
+.bm-on{background:var(--red);color:#fff;border:none;}
+.btn-sec{flex:1;padding:14px;border-radius:12px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="app-name">
+    <div class="live-dot" id="live-dot"></div>
+    Signal Pro
+  </div>
+  <span class="status-pill sp-off" id="status-pill">● OFF</span>
+</div>
+
+<div class="tabs">
+  <div class="tab act" onclick="showTab('signals',this)">⚡ Signals</div>
+  <div class="tab" onclick="showTab('chart',this)">📊 Chart</div>
+  <div class="tab" onclick="showTab('history',this)">📋 History</div>
+</div>
+
+<!-- SIGNALS PAGE -->
+<div class="page show" id="page-signals">
+
+  <!-- PAIR + TF SELECTOR -->
+  <div class="selector-box">
+    <div class="sel-title">Pair தேர்வு செய்யுங்கள்</div>
+    <div class="pair-grid">
+      <button class="pair-btn sel" onclick="setPair('EUR/USD',this)">EUR/USD</button>
+      <button class="pair-btn" onclick="setPair('GBP/USD',this)">GBP/USD</button>
+      <button class="pair-btn" onclick="setPair('USD/JPY',this)">USD/JPY</button>
+      <button class="pair-btn" onclick="setPair('AUD/USD',this)">AUD/USD</button>
+      <button class="pair-btn" onclick="setPair('USD/CAD',this)">USD/CAD</button>
+      <button class="pair-btn" onclick="setPair('EUR/GBP',this)">EUR/GBP</button>
+      <button class="pair-btn" onclick="setPair('GBP/JPY',this)">GBP/JPY</button>
+      <button class="pair-btn" onclick="setPair('EUR/JPY',this)">EUR/JPY</button>
+      <button class="pair-btn" onclick="setPair('USD/CHF',this)">USD/CHF</button>
+    </div>
+    <div class="sel-title">Timeframe தேர்வு செய்யுங்கள்</div>
+    <div class="tf-grid">
+      <button class="tf-btn" onclick="setTF('1min','1',this)">1m</button>
+      <button class="tf-btn" onclick="setTF('2min','2',this)">2m</button>
+      <button class="tf-btn sel" onclick="setTF('5min','5',this)">5m</button>
+      <button class="tf-btn" onclick="setTF('15min','15',this)">15m</button>
+      <button class="tf-btn" onclick="setTF('30min','30',this)">30m</button>
+    </div>
+    <div class="active-label">
+      <span class="al-pair" id="al-pair">EUR/USD</span>
+      <span class="al-sep">•</span>
+      <span class="al-tf" id="al-tf">5m</span>
+      <span class="al-sep">•</span>
+      <span style="font-size:12px;color:var(--muted)" id="al-candle-secs">Next: —</span>
+    </div>
+  </div>
+
+  <!-- WIN/LOSS -->
+  <div class="wl-grid">
+    <div class="wlb wlb-w"><div class="wl-lbl">WIN</div><div class="wl-num" id="wl-w">0</div></div>
+    <div class="wlb wlb-l"><div class="wl-lbl">LOSS</div><div class="wl-num" id="wl-l">0</div></div>
+    <div class="wlb wlb-t"><div class="wl-lbl">TOTAL</div><div class="wl-num" id="wl-t">0</div></div>
+    <div class="wlb wlb-r"><div class="wl-lbl">RATE</div><div class="wl-num" id="wl-r">—</div></div>
+  </div>
+
+  <div class="wr-wrap">
+    <div class="wr-labels">
+      <span style="color:var(--green);font-weight:700" id="wr-lg">Win 0%</span>
+      <span style="color:var(--red);font-weight:700" id="wr-lr">Loss 0%</span>
+    </div>
+    <div class="wr-bar">
+      <div class="wr-g" id="wr-g" style="width:0%"></div>
+      <div class="wr-r" id="wr-r" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- SIGNAL CARD -->
+  <div class="sig-card" id="sig-card">
+    <div class="sc-top">
+      <div>
+        <div class="sc-dir" id="sc-dir">BUY ▲</div>
+        <div class="sc-meta" id="sc-meta">EUR/USD • 5m • Pattern</div>
+      </div>
+      <div class="sc-right">
+        <span class="acc-pill" id="sc-acc">~80%</span>
+        <button class="x-btn" onclick="dismissSig()">✕</button>
+      </div>
+    </div>
+    <div class="time-row">
+      <div class="tbox tb-e">
+        <div class="tb-lbl">🟢 Entry</div>
+        <div class="tb-time" id="tb-entry">—</div>
+        <div class="tb-sub">இப்போதே trade போடு</div>
+      </div>
+      <div class="tbox tb-x">
+        <div class="tb-lbl">🔴 Exit</div>
+        <div class="tb-time" id="tb-exit">—</div>
+        <div class="tb-sub" id="tb-exit-sub">5m expiry</div>
+      </div>
+    </div>
+    <div class="cd-wrap" id="cd-wrap">
+      <div class="cd-num" id="cd-num">30</div>
+      <div class="cd-lbl">வினாடிகளில் ENTER பண்ணுங்கள்</div>
+    </div>
+    <div class="rb-row" id="rb-row" style="display:none">
+      <button class="rb rb-w" onclick="markResult('win')">✓ WIN</button>
+      <button class="rb rb-l" onclick="markResult('loss')">✗ LOSS</button>
+    </div>
+    <div class="exp-wrap" id="exp-wrap">
+      <div class="exp-top">
+        <span>Trade Running ⏱</span>
+        <span class="exp-rem" id="exp-rem">5:00</span>
+      </div>
+      <div class="exp-bg"><div class="exp-fill" id="exp-fill" style="width:100%"></div></div>
+    </div>
+  </div>
+
+  <div class="cbar-wrap">
+    <div class="cbar-top">
+      <span>Next candle closes in</span>
+      <span style="font-weight:700;color:var(--text)" id="cbar-sec">—</span>
+    </div>
+    <div class="cbar-bg">
+      <div class="cbar-fill" id="cbar-fill" style="width:100%;background:var(--blue)"></div>
+    </div>
+  </div>
+
+  <div class="pstats">
+    <div class="ps"><div class="ps-lbl">Price</div><div class="ps-val" id="ps-price">—</div></div>
+    <div class="ps"><div class="ps-lbl">Change</div><div class="ps-val" id="ps-chg">—</div></div>
+    <div class="ps"><div class="ps-lbl">Candles</div><div class="ps-val" id="ps-cand">0</div></div>
+    <div class="ps"><div class="ps-lbl">Signals</div><div class="ps-val" id="ps-sig">0</div></div>
+  </div>
+
+  <div class="err-box" id="err-box"></div>
+</div>
+
+<!-- CHART PAGE -->
+<div class="page" id="page-chart" style="padding:0;overflow:hidden;">
+  <div class="chart-page-inner">
+    <div class="tv-iframe-wrap">
+      <iframe id="tv-frame" src="" allowtransparency="true" allowfullscreen></iframe>
+    </div>
+    <div class="chart-bottom">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:700;">Chart Timeframe:</div>
+      <div class="cb-row">
+        <button class="cb-btn" onclick="setChartTF('1',this)">1m</button>
+        <button class="cb-btn" onclick="setChartTF('2',this)">2m</button>
+        <button class="cb-btn sel" id="ctf5" onclick="setChartTF('5',this)">5m</button>
+        <button class="cb-btn" onclick="setChartTF('15',this)">15m</button>
+        <button class="cb-btn" onclick="setChartTF('30',this)">30m</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY PAGE -->
+<div class="page" id="page-history">
+  <div class="hs-grid">
+    <div class="hs" style="background:rgba(0,230,118,0.07);border-color:rgba(0,230,118,0.25)">
+      <div class="hs-lbl" style="color:var(--green)">Wins</div>
+      <div class="hs-val" style="color:var(--green)" id="hs-w">0</div>
+    </div>
+    <div class="hs" style="background:rgba(255,61,110,0.07);border-color:rgba(255,61,110,0.25)">
+      <div class="hs-lbl" style="color:var(--red)">Losses</div>
+      <div class="hs-val" style="color:var(--red)" id="hs-l">0</div>
+    </div>
+    <div class="hs" style="background:rgba(255,171,64,0.07);border-color:rgba(255,171,64,0.25)">
+      <div class="hs-lbl" style="color:var(--orange)">Win Rate</div>
+      <div class="hs-val" style="color:var(--orange)" id="hs-r">—</div>
+    </div>
+  </div>
+  <div class="hf-row">
+    <button class="hf-btn sel" onclick="filterHist('all',this)">All</button>
+    <button class="hf-btn" onclick="filterHist('win',this)">Win</button>
+    <button class="hf-btn" onclick="filterHist('loss',this)">Loss</button>
+    <button class="hf-btn" onclick="filterHist('pending',this)">Pending</button>
+  </div>
+  <div class="hist-list" id="hist-list">
+    <div class="empty-msg">Signal வந்து Win/Loss mark பண்ணினால்<br>இங்கே காட்டும் 📋</div>
+  </div>
+</div>
+
+<div class="bottombar">
+  <button class="btn-main bm-off" id="btn-main" onclick="toggleMonitor()">▶ Start Monitor</button>
+  <button class="btn-sec" onclick="clearAll()">Clear</button>
+</div>
+
+<script>
+const API_KEY='a2661e0ca1484d33b97e6f765b943855';
+
+// Pair → Twelve Data symbol map
+const PAIR_MAP={
+  'EUR/USD':'EUR/USD','GBP/USD':'GBP/USD','USD/JPY':'USD/JPY',
+  'AUD/USD':'AUD/USD','USD/CAD':'USD/CAD','EUR/GBP':'EUR/GBP',
+  'GBP/JPY':'GBP/JPY','EUR/JPY':'EUR/JPY','USD/CHF':'USD/CHF'
+};
+// Pair → TradingView symbol map
+const TV_MAP={
+  'EUR/USD':'FX:EURUSD','GBP/USD':'FX:GBPUSD','USD/JPY':'FX:USDJPY',
+  'AUD/USD':'FX:AUDUSD','USD/CAD':'FX:USDCAD','EUR/GBP':'FX:EURGBP',
+  'GBP/JPY':'FX:GBPJPY','EUR/JPY':'FX:EURJPY','USD/CHF':'FX:USDCHF'
+};
+// TF label → candle seconds
+const TF_SECS={'1min':60,'2min':120,'5min':300,'15min':900,'30min':1800};
+const TF_LABEL={'1min':'1m','2min':'2m','5min':'5m','15min':'15m','30min':'30m'};
+// Expiry per TF
+const TF_EXPIRY={'1min':2,'2min':4,'5min':5,'15min':10,'30min':15};
+
+let currentPair='EUR/USD';
+let currentTF='5min';
+let currentTVInterval='5';
+let chartTVInterval='5';
+
+let running=false,fetchTimer=null,cbarTimer=null,cdTimer=null,expTimer=null;
+let candles=[],sigTotal=0,seenKeys=[];
+let wins=0,losses=0,history=[],currentSig=null,histFilter='all';
+let nextCandleMs=0;
+
+function fmt(ms){
+  return new Date(ms).toLocaleTimeString('en-IN',{
+    hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+}
+function fmtMin(s){
+  const m=Math.floor(s/60),sc=s%60;
+  return m+':'+(sc<10?'0':'')+sc;
+}
+
+// ── PAIR / TF SELECTION ───────────────────────────
+function setPair(pair,el){
+  currentPair=pair;
+  document.querySelectorAll('.pair-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('al-pair').textContent=pair;
+  updateTVChart();
+  if(running){restartFetch();}
+}
+
+function setTF(tf,tvInterval,el){
+  currentTF=tf;
+  currentTVInterval=tvInterval;
+  document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('al-tf').textContent=TF_LABEL[tf];
+  updateTVChart();
+  if(running){restartFetch();}
+}
+
+function setChartTF(interval,el){
+  chartTVInterval=interval;
+  document.querySelectorAll('.cb-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  updateTVChart();
+}
+
+function updateTVChart(){
+  const tvSym=encodeURIComponent(TV_MAP[currentPair]||'FX:EURUSD');
+  const interval=chartTVInterval||currentTVInterval;
+  const src=`https://s.tradingview.com/widgetembed/?frameElementId=tv-frame&symbol=${tvSym}&interval=${interval}&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=0&saveimage=0&toolbarbg=0f1420&studies=MASimple%40tv-basicstudies&theme=dark&style=1&timezone=Asia%2FKolkata&overrides=%7B%22mainSeriesProperties.candleStyle.upColor%22%3A%22%2300e676%22%2C%22mainSeriesProperties.candleStyle.downColor%22%3A%22%23ff3d6e%22%2C%22mainSeriesProperties.candleStyle.borderUpColor%22%3A%22%2300e676%22%2C%22mainSeriesProperties.candleStyle.borderDownColor%22%3A%22%23ff3d6e%22%2C%22paneProperties.background%22%3A%22%230f1420%22%7D&locale=en`;
+  document.getElementById('tv-frame').src=src;
+}
+
+// ── FETCH ─────────────────────────────────────────
+async function fetchCandles(){
+  try{
+    const sym=PAIR_MAP[currentPair]||'EUR/USD';
+    const url=`https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(sym)}&interval=${currentTF}&outputsize=40&apikey=${API_KEY}`;
+    const res=await fetch(url);
+    const data=await res.json();
+    if(data.status==='error'||!data.values){showErr(data.message||'Market closed / API limit');return;}
+    hideErr();
+    candles=data.values.reverse().map(v=>({
+      o:parseFloat(v.open),c:parseFloat(v.close),
+      h:parseFloat(v.high),l:parseFloat(v.low),t:v.datetime
+    }));
+    const lat=candles[candles.length-1];
+    const prv=candles[candles.length-2];
+    const chg=prv?((lat.c-prv.c)/prv.c*100):0;
+    document.getElementById('ps-price').textContent=lat.c.toFixed(5);
+    document.getElementById('ps-cand').textContent=candles.length;
+    const ce=document.getElementById('ps-chg');
+    ce.textContent=(chg>=0?'+':'')+chg.toFixed(4)+'%';
+    ce.style.color=chg>=0?'var(--green)':'var(--red)';
+    calcCbar(lat.t);
+    detect(candles);
+  }catch(e){showErr('Error: '+e.message);}
+}
+
+function calcCbar(dt){
+  const candleSecs=TF_SECS[currentTF]||300;
+  const ms=new Date(dt.replace(' ','T')).getTime();
+  nextCandleMs=ms+(candleSecs*1000);
+  if(cbarTimer)clearInterval(cbarTimer);
+  cbarTimer=setInterval(()=>{
+    const rem=Math.max(0,Math.floor((nextCandleMs-Date.now())/1000));
+    const m=Math.floor(rem/60),s=rem%60;
+    const txt=(m>0?m+'m ':'')+s+'s';
+    document.getElementById('cbar-sec').textContent=txt;
+    document.getElementById('al-candle-secs').textContent='Next: '+txt;
+    const pct=(rem/candleSecs)*100;
+    const f=document.getElementById('cbar-fill');
+    f.style.width=pct+'%';
+    f.style.background=rem<30?'var(--red)':rem<60?'var(--orange)':'var(--blue)';
+  },1000);
+}
+
+// ── PATTERNS ──────────────────────────────────────
+function isBull(c){return c.c>c.o;}
+function isBear(c){return c.c<c.o;}
+function body(c){return Math.abs(c.c-c.o);}
+function isSmall(c){return body(c)<(c.h-c.l)*0.3;}
+function wTop(c){return c.h-Math.max(c.o,c.c);}
+function wBot(c){return Math.min(c.o,c.c)-c.l;}
+
+function detect(c){
+  if(c.length<3)return;
+  const n=c.length;
+  const c1=c[n-3],c2=c[n-2],c3=c[n-1];
+  const k2=currentPair+currentTF+c2.t+'|'+c3.t;
+  const k3=currentPair+currentTF+c1.t+'|'+c2.t+'|'+c3.t;
+  const exp=TF_EXPIRY[currentTF]||5;
+
+  if(!seenKeys.includes('be'+k2)&&isBear(c2)&&isBull(c3)&&
+     c3.o<=c2.c&&c3.c>=c2.o&&body(c3)>=body(c2)*0.9&&body(c3)>=(c3.h-c3.l)*0.55){
+    seenKeys.push('be'+k2);
+    fire({type:'buy',dir:'BUY ▲',pattern:'Bullish Engulfing',acc:'~80%',dur:exp});
+  }
+  if(!seenKeys.includes('be2'+k2)&&isBull(c2)&&isBear(c3)&&
+     c3.o>=c2.c&&c3.c<=c2.o&&body(c3)>=body(c2)*0.9&&body(c3)>=(c3.h-c3.l)*0.55){
+    seenKeys.push('be2'+k2);
+    fire({type:'sell',dir:'SELL ▼',pattern:'Bearish Engulfing',acc:'~80%',dur:exp});
+  }
+  if(!seenKeys.includes('ms'+k3)&&isBear(c1)&&isSmall(c2)&&isBull(c3)&&
+     c3.c>=(c1.o+c1.c)/2&&body(c1)>body(c2)*2){
+    seenKeys.push('ms'+k3);
+    fire({type:'buy',dir:'BUY ▲',pattern:'Morning Star ⭐',acc:'~75%',dur:exp*2});
+  }
+  if(!seenKeys.includes('es'+k3)&&isBull(c1)&&isSmall(c2)&&isBear(c3)&&
+     c3.c<=(c1.o+c1.c)/2&&body(c1)>body(c2)*2){
+    seenKeys.push('es'+k3);
+    fire({type:'sell',dir:'SELL ▼',pattern:'Evening Star ⭐',acc:'~75%',dur:exp*2});
+  }
+  if(!seenKeys.includes('bpb'+k2)&&wBot(c2)>=body(c2)*2.5&&
+     wBot(c2)>=wTop(c2)*2&&body(c2)<(c2.h-c2.l)*0.3){
+    seenKeys.push('bpb'+k2);
+    fire({type:'buy',dir:'BUY ▲',pattern:'Bullish Pin Bar 📌',acc:'~78%',dur:exp});
+  }
+  if(!seenKeys.includes('spb'+k2)&&wTop(c2)>=body(c2)*2.5&&
+     wTop(c2)>=wBot(c2)*2&&body(c2)<(c2.h-c2.l)*0.3){
+    seenKeys.push('spb'+k2);
+    fire({type:'sell',dir:'SELL ▼',pattern:'Bearish Pin Bar 📌',acc:'~78%',dur:exp});
+  }
+  if(seenKeys.length>120)seenKeys=seenKeys.slice(-60);
+}
+
+// ── FIRE SIGNAL ───────────────────────────────────
+function fire(p){
+  currentSig=p;
+  const now=Date.now();
+  p.entryMs=now;p.exitMs=now+(p.dur*60000);
+  p.result='pending';p.pair=currentPair;p.tf=TF_LABEL[currentTF];
+  const card=document.getElementById('sig-card');
+  card.className='sig-card '+(p.type==='buy'?'sc-buy':'sc-sell');
+  card.style.display='block';
+  document.getElementById('sc-dir').textContent=p.dir;
+  document.getElementById('sc-meta').textContent=currentPair+' • '+TF_LABEL[currentTF]+' • '+p.pattern;
+  document.getElementById('sc-acc').textContent=p.acc;
+  document.getElementById('tb-entry').textContent=fmt(now);
+  document.getElementById('tb-exit').textContent=fmt(p.exitMs);
+  document.getElementById('tb-exit-sub').textContent=p.dur+'m expiry';
+  document.getElementById('cd-wrap').style.display='block';
+  document.getElementById('rb-row').style.display='none';
+  document.getElementById('exp-wrap').style.display='none';
+  history.unshift(p);
+  sigTotal++;
+  document.getElementById('ps-sig').textContent=sigTotal;
+  renderHist();
+  if(cdTimer)clearInterval(cdTimer);
+  let left=30;
+  document.getElementById('cd-num').textContent=left;
+  cdTimer=setInterval(()=>{
+    left--;
+    document.getElementById('cd-num').textContent=left;
+    if(left<=0){
+      clearInterval(cdTimer);
+      document.getElementById('cd-wrap').style.display='none';
+      document.getElementById('rb-row').style.display='grid';
+      document.getElementById('exp-wrap').style.display='block';
+      startExp(p.exitMs,p.dur*60);
+    }
+  },1000);
+  playSignal(p.type);
+  doNotify(p.dir+' '+currentPair,'Pattern: '+p.pattern+' | Entry: '+fmt(now)+' Exit: '+fmt(p.exitMs));
+  showTab('signals',document.querySelector('.tab'));
+}
+
+function startExp(exitMs,total){
+  if(expTimer)clearInterval(expTimer);
+  expTimer=setInterval(()=>{
+    const rem=Math.max(0,Math.floor((exitMs-Date.now())/1000));
+    document.getElementById('exp-rem').textContent=fmtMin(rem);
+    document.getElementById('exp-fill').style.width=((rem/total)*100)+'%';
+    if(rem<=0){clearInterval(expTimer);playDone();}
+  },1000);
+}
+
+function markResult(r){
+  if(!currentSig)return;
+  currentSig.result=r;
+  if(r==='win')wins++;else losses++;
+  updateWL();renderHist();dismissSig();playResult(r);
+}
+
+function updateWL(){
+  const total=wins+losses;
+  const rate=total>0?Math.round((wins/total)*100):0;
+  document.getElementById('wl-w').textContent=wins;
+  document.getElementById('wl-l').textContent=losses;
+  document.getElementById('wl-t').textContent=total;
+  document.getElementById('wl-r').textContent=total>0?rate+'%':'—';
+  const gw=total>0?(wins/total*100):0;
+  const rw=total>0?(losses/total*100):0;
+  document.getElementById('wr-g').style.width=gw+'%';
+  document.getElementById('wr-r').style.width=rw+'%';
+  document.getElementById('wr-lg').textContent='Win '+Math.round(gw)+'%';
+  document.getElementById('wr-lr').textContent='Loss '+Math.round(rw)+'%';
+  document.getElementById('hs-w').textContent=wins;
+  document.getElementById('hs-l').textContent=losses;
+  document.getElementById('hs-r').textContent=total>0?rate+'%':'—';
+}
+
+function dismissSig(){
+  document.getElementById('sig-card').style.display='none';
+  if(cdTimer)clearInterval(cdTimer);
+  if(expTimer)clearInterval(expTimer);
+}
+
+function renderHist(){
+  const list=document.getElementById('hist-list');
+  const filtered=histFilter==='all'?history:history.filter(h=>h.result===histFilter);
+  if(filtered.length===0){list.innerHTML='<div class="empty-msg">No '+histFilter+' signals yet</div>';return;}
+  list.innerHTML='';
+  filtered.forEach(h=>{
+    const icon=h.result==='win'?'✓':h.result==='loss'?'✗':'⏳';
+    const cls=h.result==='win'?'hi-w':h.result==='loss'?'hi-l':'hi-p';
+    const tag=h.result==='win'?'WIN':h.result==='loss'?'LOSS':'Pending';
+    const div=document.createElement('div');
+    div.className='hi '+cls;
+    div.innerHTML=`<div class="hi-icon">${icon}</div>
+      <div class="hi-main">
+        <div class="hi-dir">${h.dir} — ${h.pattern}</div>
+        <div class="hi-meta">
+          <b>${h.pair||''}</b> • <b>${h.tf||''}</b><br>
+          🟢 <b>${fmt(h.entryMs)}</b> → 🔴 <b>${fmt(h.exitMs)}</b>
+        </div>
+      </div>
+      <span class="hi-tag">${tag}</span>`;
+    list.appendChild(div);
+  });
+}
+
+function filterHist(f,el){
+  histFilter=f;
+  document.querySelectorAll('.hf-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');renderHist();
+}
+
+function showTab(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('act'));
+  document.getElementById('page-'+name).classList.add('show');
+  if(el)el.classList.add('act');
+}
+
+async function toggleMonitor(){
+  running=!running;
+  const btn=document.getElementById('btn-main');
+  const dot=document.getElementById('live-dot');
+  const pill=document.getElementById('status-pill');
+  if(running){
+    if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
+    btn.textContent='⏹ Stop Monitor';btn.className='btn-main bm-on';
+    dot.className='live-dot on';
+    pill.textContent='● LIVE';pill.className='status-pill sp-on';
+    await fetchCandles();
+    const refreshMs=Math.max(15000,TF_SECS[currentTF]*500);
+    fetchTimer=setInterval(fetchCandles,refreshMs);
+  }else{
+    btn.textContent='▶ Start Monitor';btn.className='btn-main bm-off';
+    dot.className='live-dot';
+    pill.textContent='● OFF';pill.className='status-pill sp-off';
+    clearInterval(fetchTimer);
+    if(cbarTimer)clearInterval(cbarTimer);
+    document.getElementById('cbar-sec').textContent='—';
+    document.getElementById('al-candle-secs').textContent='Next: —';
+  }
+}
+
+function restartFetch(){
+  clearInterval(fetchTimer);
+  seenKeys=[];
+  fetchCandles();
+  const refreshMs=Math.max(15000,TF_SECS[currentTF]*500);
+  fetchTimer=setInterval(fetchCandles,refreshMs);
+}
+
+function clearAll(){
+  wins=0;losses=0;sigTotal=0;seenKeys=[];history=[];currentSig=null;histFilter='all';
+  updateWL();dismissSig();
+  document.getElementById('ps-sig').textContent='0';
+  document.getElementById('ps-price').textContent='—';
+  document.getElementById('ps-chg').textContent='—';
+  document.getElementById('hist-list').innerHTML='<div class="empty-msg">Cleared ✓</div>';
+  document.querySelectorAll('.hf-btn').forEach((b,i)=>b.classList.toggle('sel',i===0));
+}
+
+function tone(f,t,d){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.frequency.value=f;o.type='sine';
+    g.gain.setValueAtTime(0.35,ctx.currentTime+t);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+d);
+    o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+d);
+  }catch(e){}
+}
+function playSignal(t){
+  if(t==='buy'){tone(523,0,0.1);tone(659,0.12,0.1);tone(784,0.24,0.15);}
+  else{tone(784,0,0.1);tone(659,0.12,0.1);tone(523,0.24,0.15);}
+}
+function playDone(){tone(523,0,0.1);tone(523,0.15,0.1);tone(784,0.3,0.2);}
+function playResult(r){
+  if(r==='win'){tone(784,0,0.1);tone(988,0.15,0.2);}
+  else{tone(330,0,0.15);tone(277,0.18,0.2);}
+}
+function doNotify(title,body){
+  if('Notification' in window&&Notification.permission==='granted')
+    new Notification('⚡ '+title,{body,tag:'sp'});
+}
+function showErr(m){const b=document.getElementById('err-box');b.style.display='block';b.textContent='⚠ '+m;}
+function hideErr(){document.getElementById('err-box').style.display='none';}
+
+window.addEventListener('load',()=>{updateTVChart();});
+</script>
+</body>
+</html>
