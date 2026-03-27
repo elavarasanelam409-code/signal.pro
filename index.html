@@ -539,7 +539,9 @@ function updateTV(){
 async function fetchCandles(){
   trackAPICall();
   try{
-    const url=`https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(PAIR_MAP[pair])}&interval=${tf}&outputsize=60&apikey=${API_KEY}`;
+    const realUrl = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(PAIR_MAP[pair])}&interval=${tf}&outputsize=60&apikey=${API_KEY}`;
+
+const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(realUrl)}`;
     const res=await fetch(url);
     const data=await res.json();
     if(data.status==='error'||!data.values){showErr(data.message||'Market closed / limit');return;}
