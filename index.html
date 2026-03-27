@@ -944,7 +944,7 @@ async function toggleMonitor(){
     pill.textContent='● LIVE';pill.className='spill sp-on';
     await fetchCandles();
     // Minimum 2 min refresh to save API calls (800/day limit)
-    const ms=Math.max(120000,TF_SECS[tf]*1000);
+    const ms=Math.max(10000,TF_SECS[tf]*1000);
     fetchTimer=setInterval(fetchCandles,ms);
   }else{
     btn.textContent='▶ Start Monitor';btn.className='btn-main bm-off';
@@ -960,7 +960,7 @@ async function toggleMonitor(){
 function restartFetch(){
   clearInterval(fetchTimer);seenKeys=[];
   fetchCandles();
-  const ms=Math.max(120000,TF_SECS[tf]*1000);
+  const ms=Math.max(10000,TF_SECS[tf]*1000);
   fetchTimer=setInterval(fetchCandles,ms);
 }
 
