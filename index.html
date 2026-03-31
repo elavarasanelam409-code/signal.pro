@@ -1252,7 +1252,7 @@ async function toggleMonitor(){
     dot.className='ldot on';
     pill.textContent='● LIVE';pill.className='spill sp-on';
     await fetchCandles();
-    const ms=Math.max(15000,TF_SECS[tf]*400);
+    const ms=Math.max(30000,TF_SECS[tf]*400);
     fetchTimer=setInterval(fetchCandles,ms);
   }else{
     btn.textContent='▶ Start Monitor';btn.className='btn-main bm-off';
@@ -1268,7 +1268,7 @@ async function toggleMonitor(){
 function restartFetch(){
   clearInterval(fetchTimer);seenKeys=[];
   fetchCandles();
-  const ms=Math.max(15000,TF_SECS[tf]*400);
+  const ms=Math.max(30000,TF_SECS[tf]*400);
   fetchTimer=setInterval(fetchCandles,ms);
 }
 
